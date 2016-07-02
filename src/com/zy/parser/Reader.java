@@ -30,8 +30,29 @@ public class Reader {
     }
 
     public int nextInt() {
-        String s = nextString();
+        String s = nextNumString();
+        if (s == null || s.isEmpty()){
+            return -1;
+        }
         return Integer.valueOf(s);
+    }
+
+    public String nextNumString() {
+        nextNonWhitespace();
+
+        StringBuilder stringBuilder = new StringBuilder();
+        char c;
+        while (pos < buffer.length){
+            c = buffer[pos ++];
+            if (c == '"' && stringBuilder.length() <= 0){
+                continue;
+            }else if (c > '0' && c < '9' || c == '.' || c == '-'){
+                stringBuilder.append(c);
+            }else {
+                break;
+            }
+        }
+        return stringBuilder.toString();
     }
 
     public String nextString() {
@@ -43,7 +64,7 @@ public class Reader {
             c = buffer[pos ++];
             if (c == '"' && stringBuilder.length() <= 0){
                 continue;
-            }else if (c == '"'){
+            }else if (c == '"' || c == '}' || c == ','){
                 break;
             }else {
                 stringBuilder.append(c);
@@ -79,21 +100,35 @@ public class Reader {
         return pos < buffer.length;
     }
 
-    public int next() {
+//    public int next() {
+//        if (pos < buffer.length){
+//            char c = buffer[pos];
+//            switch (c){
+//                case '{':
+//                    return T_BRACKET;
+//                case '"':
+//                    return T_QUOTE;
+//                case ',':
+//                    return T_COMMA;
+//                default:
+//                    return T_LETTER;
+//            }
+//        }
+//        return T_ERROR;
+//    }
+    public char next() throws BufferException{
         if (pos < buffer.length){
-            char c = buffer[pos];
-            switch (c){
-                case '{':
-                    return T_BRACKET;
-                case '"':
-                    return T_QUOTE;
-                case ',':
-                    return T_COMMA;
-                default:
-                    return T_LETTER;
-            }
+            return buffer[pos];
         }
-        return T_ERROR;
+        throw new BufferException("no next");
+    }
+
+    public void skipNext() {
+        pos ++;
+    }
+
+    public void moveToLast() {
+        pos --;
     }
 
     public void nextNonWhitespace() {

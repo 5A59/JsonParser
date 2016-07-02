@@ -22,7 +22,7 @@ public class ParserFactory {
         }else if (type.equals(BOOLEAN)){
             return new BooleanParser();
         }else if (type.equals(STRING)){
-            return null;
+            return new StringParser();
         }else {
             return new ObjectParser(clazz);
         }
