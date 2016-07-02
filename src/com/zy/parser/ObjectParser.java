@@ -1,8 +1,6 @@
 package com.zy.parser;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
-import java.time.format.TextStyle;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -72,6 +70,8 @@ public class ObjectParser implements Parser {
                         stack.pop();
                     }
                     break;
+                case ' ':
+                    break;
                 default:
                     reader.moveToLast();
                     setNameAndValue(reader, instance);
@@ -123,12 +123,39 @@ public class ObjectParser implements Parser {
     public static class Test {
         public String a;
         public int b;
+        public double d;
+        public boolean bo;
+        public Test2 t;
+
+        @Override
+        public String toString() {
+            return "test1 : " + a + " " + b + " " + d + " " + bo + " " + (t == null ? "null" : t.toString());
+        }
+    }
+
+    public static class Test2 {
+        public int a;
+
+        @Override
+        public String toString() {
+            return " test2 : " + a;
+        }
     }
 
     public static void main(String[] args) {
-        String json = "{ \"a\":\"test\", \"b\":1 }";
+        Logger.d(ObjectParser.fieldString(Test.class));
+        String json = "{ \"a\":\"test\", \"b\":1 , \"d\":1.1, \"bo\":\"True\", \"t\":{\"a\":1}}";
         ObjectParser objectParser = new ObjectParser(Test.class);
         Test t = (Test) objectParser.parse(new Reader(json));
-        Logger.d("t : a - " + t.a + "  b - " + t.b);
+        Logger.d(t.toString());
+    }
+
+    public static String fieldString(Class<?> clazz) {
+        Field[] fields = clazz.getDeclaredFields();
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Field f : fields){
+            stringBuilder.append(f.getType().getTypeName()).append(" ");
+        }
+        return stringBuilder.toString();
     }
 }

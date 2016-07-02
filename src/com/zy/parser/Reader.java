@@ -49,6 +49,7 @@ public class Reader {
             }else if (c > '0' && c < '9' || c == '.' || c == '-'){
                 stringBuilder.append(c);
             }else {
+                pos --;
                 break;
             }
         }
@@ -83,7 +84,7 @@ public class Reader {
     }
 
     public double nextDouble() {
-        String s = nextString();
+        String s = nextNumString();
         return Double.valueOf(s);
     }
 
@@ -100,22 +101,6 @@ public class Reader {
         return pos < buffer.length;
     }
 
-//    public int next() {
-//        if (pos < buffer.length){
-//            char c = buffer[pos];
-//            switch (c){
-//                case '{':
-//                    return T_BRACKET;
-//                case '"':
-//                    return T_QUOTE;
-//                case ',':
-//                    return T_COMMA;
-//                default:
-//                    return T_LETTER;
-//            }
-//        }
-//        return T_ERROR;
-//    }
     public char next() throws BufferException{
         if (pos < buffer.length){
             return buffer[pos];
