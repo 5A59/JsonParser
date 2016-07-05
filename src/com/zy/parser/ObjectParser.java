@@ -10,6 +10,7 @@ import java.util.Stack;
  */
 public class ObjectParser implements Parser {
 
+    private static final int START_TAG = -1;
     private static final int OBJECT = 0;
     private static final int NAME = 1;
     private static final int VALUE = 2;
@@ -41,7 +42,11 @@ public class ObjectParser implements Parser {
             return null;
         }
 
-        while (reader.hasNext()){
+        stack.push(START_TAG);
+        while (reader.hasNext() && !stack.empty()){
+            if (stack.peek() == START_TAG){
+                stack.pop();
+            }
             char c;
             try {
                 c = reader.next();
@@ -51,10 +56,16 @@ public class ObjectParser implements Parser {
             }
             reader.skipNext();
 
+            Logger.d("c is " + c);
             switch (c){
                 case '{':
-                    stack.push(OBJECT);
-                    stack.push(NAME);
+                    if (stack != null && !stack.isEmpty() && stack.peek() == VALUE){
+                        reader.moveToLast();
+                        setValue(reader, instance);
+                    }else {
+                        stack.push(OBJECT);
+                        stack.push(NAME);
+                    }
                     continue;
                 case '"':
                     setNameAndValue(reader, instance);
@@ -82,6 +93,35 @@ public class ObjectParser implements Parser {
         return instance;
     }
 
+    private void setValue(Reader reader, Object instance) {
+        if (nameStack.isEmpty()){
+            return;
+        }
+        String name = nameStack.pop();
+        Field field = map.get(name);
+        if (field != null){
+            Parser p;
+            String type = field.getType().getName();
+            Logger.d("type is : " + type);
+            Class<?> clazz;
+            try {
+                clazz = Class.forName(type);
+            } catch (Exception e) {
+                e.printStackTrace();
+                clazz = null;
+            }
+            p = ParserFactory.getParser(type, clazz);
+            Object obj = p.parse(reader);
+            Logger.d("value is " + obj);
+            try {
+                field.set(instance, obj);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        stack.pop();
+    }
+
     private void setNameAndValue(Reader reader, Object instance) {
          if (stack.peek() == NAME){
             String name = reader.nextName();
@@ -92,31 +132,7 @@ public class ObjectParser implements Parser {
             }
             stack.pop();
         }else if (stack.peek() == VALUE){
-            if (nameStack.isEmpty()){
-                return;
-            }
-            String name = nameStack.pop();
-            Field field = map.get(name);
-            if (field != null){
-                Parser p;
-                String type = field.getType().getName();
-                Class<?> clazz;
-                try {
-                    clazz = Class.forName(type);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    clazz = null;
-                }
-                p = ParserFactory.getParser(type, clazz);
-                Object obj = p.parse(reader);
-                Logger.d("value is " + obj);
-                try {
-                    field.set(instance, obj);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-            }
-            stack.pop();
+             setValue(reader, instance);
         }
     }
 
