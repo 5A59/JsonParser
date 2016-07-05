@@ -13,7 +13,19 @@ public class JsonParser {
      * @return
      */
     public <T> Object fromJson(String json, Class<T> clazz) {
-
+        Reader reader = new Reader(json);
+        char c;
+        try {
+            c = reader.next();
+        } catch (Reader.BufferException e) {
+            e.printStackTrace();
+            return null;
+        }
+        if (reader.hasNext() && c != '['){
+            ObjectParser objectParser = new ObjectParser(clazz);
+            Object obj = objectParser.parse(reader);
+            return obj;
+        }
         return null;
     }
 }

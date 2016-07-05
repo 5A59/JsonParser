@@ -29,7 +29,7 @@ public class ObjectParser implements Parser {
 
     @Override
     public Object parse(Reader reader) {
-        Field[] fields = raw.getFields();
+        Field[] fields = raw.getDeclaredFields();
         for (Field f : fields){
             String name = f.getName();
             map.put(name, f);
@@ -82,6 +82,7 @@ public class ObjectParser implements Parser {
                     }
                     break;
                 case ' ':
+                case '\n':
                     break;
                 default:
                     reader.moveToLast();
@@ -114,7 +115,9 @@ public class ObjectParser implements Parser {
             Object obj = p.parse(reader);
             Logger.d("value is " + obj);
             try {
+                field.setAccessible(true);
                 field.set(instance, obj);
+                field.setAccessible(false);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -164,6 +167,7 @@ public class ObjectParser implements Parser {
         ObjectParser objectParser = new ObjectParser(Test.class);
         Test t = (Test) objectParser.parse(new Reader(json));
         Logger.d(t.toString());
+
     }
 
     public static String fieldString(Class<?> clazz) {
